@@ -1,0 +1,170 @@
+cd ~/humanoid_mk1/ros2_ws
+source env.sh|
+로스2 작업할떄
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+ros2 node list 현재 실행 중인 모든 ROS2 노드 목록을 보여준다. 
+ROS 시스템에 어떤 프로그램들이 돌아가는지 확인
+
+ros2 topic list 현재 ROS 시스템에서 사용 중인 토픽 목록을 보여준다.
+데이터가 흐르는 통로 목록
+
+ros2 topic echo /control_loop_count 토픽에서 실제로 흐르는 데이터를 보여준다.
+publisher가 보내는 데이터 확인 control_loop_node 보내는 값을 실시간으로 본다.
+
+ros2 topic hz /control_loop_count 토픽이 몇 Hz로 업데이트되는지 측정한다.
+
+ros2 node info /control_loop_node 특정 노드의 통신 구조를 보여준다
+이 노드는 어떤 토픽을 보내고 받는가
+
+즉 
+ros2 node list
+ros2 topic list
+ros2 topic echo <topic>
+ros2 topic hz <topic>
+ros2 node info <node>
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+처음 부팅시 켜야하는거
+sudo ip link set can0 down
+sudo ip link set can0 type can bitrate 1000000
+sudo ip link set can0 up
+ip link show can0
+
+재부팅후 링크 업로드
+
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+QoS는 ROS2 통신 품질 설정
+
+1. 코드 수정했을 때 (빌드 필요)
+# 1. Docker 환경 진입
+~/humanoid_mk1/docker/start_docker.sh
+
+# 2. ROS 기본 환경
+source /opt/ros/humble/setup.bash
+
+# 3. workspace 이동
+cd /root/ros2_ws
+
+# 4. 빌드
+./build_ros.sh
+
+# 5. workspace 환경 로드
+source install/setup.bash
+
+# 6. 실행
+ros2 run humanoid_control ak70_can_node
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+2. 코드 수정 안 했을 때 (그냥 실행)
+
+# 1. Docker 환경 진입
+2. workspace 환경 로드
+3. 실행
+~/humanoid_mk1/docker/start_docker.sh
+source /root/ros2_ws/install/setup.bash
+ros2 run humanoid_control ak70_can_node
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+
+매일 쓰게 될 작업 흐름
+메인 PC에서
+1. Docker 실행
+~/humanoid_mk1/docker/start_docker.sh
+2. Docker 안에서 빌드
+cd /root/ros2_ws
+./build_ros.sh
+source /root/ros2_ws/install/setup.bash
+3. 노드 실행
+ros2 run 어디어 무슨노드
+
+또는
+
+ros2 launch humanoid_control ak70_test.launch.py
+Jetson에서
+1. CAN 올리기
+sudo ip link set can0 down
+sudo ip link set can0 type can bitrate 1000000
+sudo ip link set can0 up
+ip link show can0
+
+2. 코드 복사 후 빌드
+cd ~/ros2_ws
+source /opt/ros/humble/setup.bash
+colcon build --symlink-install
+source install/setup.bash
+
+3. 실행
+ros2 run humanoid_control ak70_can_node
+
+지금 기준에서 각 컴퓨터 역할
+
+메인 PC
+코드 작성
+Docker 기반 개발환경
+ROS2 빌드
+상위 로직 개발
+실험/로그 확인
+
+Jetson
+실제 배포 타겟
+CAN 통신
+모터 제어
+실시간 제어루프
+나중에 센서/상태추정/보행 제어
+
+지금 프로젝트의 기술 흐름
+현재
+AK70 단독 테스트
+→ Docker ROS2 개발환경
+→ ROS2 노드 편입
+→ 실제 모터 회전 성공
+다음
+단일 모터 테스트 안정화
+→ 피드백 정리
+→ 다중 모터 구조화
+→ control loop 분리
+→ launch 통합
+→ Jetson 배포
+→ 휴머노이드 하체 제어
+
+추후예정
+
+humanoid_control
+제어 루프
+상위 제어 명령
+
+humanoid_can
+CAN 버스 입출력
+프레임 송수신
+드라이버 추상화
+
+humanoid_msgs
+상태/명령 메시지 정의
+
+humanoid_bringup
+launch, parameter, startup
+
+핵심 개념ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+
+Docker는
+개발환경 고정
+
+ros2_ws는
+ROS2 작업공간
+
+humanoid_control은
+모터/CAN/제어 로직 핵심 패키지
+
+humanoid_bringup은
+실행 묶음
+
+Jetson은
+최종 실행 장치
+
+현재 상태를 한 문장으로 요약
+지금은 메인 PC의 Docker 고정 환경에서 AK70 CAN 제어 코드를 ROS2 노드로 통합했고, 실제 모터를 ROS2 기반으로 구동하는 데 성공한 상태다.
+
+조만간 할꺼
+1. ak70_can_node 파라미터 정리
+2. 피드백 로그 형식 정리
+3. launch 파일 정리
+4. Jetson으로 동일 실행 재현
+5. 제어 노드와 드라이버 로직 분리
+6. 다중 모터 확장

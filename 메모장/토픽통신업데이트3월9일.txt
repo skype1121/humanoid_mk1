@@ -1,0 +1,15 @@
+ak70_command_test_node.py
+ak70_command_test.yaml
+ak70_test_system.launch.py
+추가생성 이제 일일이 손으로 안쳐도댐 해삐!
+
+통합테스트 코드
+이 launch가 드라이버 노드 테스트 퍼블리셔 노드를 같이 띄움
+cd ~/humanoid_mk1/ros2_ws
+source install/setup.bash
+ros2 launch humanoid_bringup ak70_test_system.launch.py
+
+상태창 띄우기
+cd ~/humanoid_mk1/ros2_ws
+source install/setup.bash
+ros2 topic echo /motor_state

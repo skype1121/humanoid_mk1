@@ -1,0 +1,6 @@
+단일 AK70-10 모터 실기 구동 성공
+ROS2 토픽 /control_command → AK70 CAN 드라이버 → 실제 모터 구동 성공
+모터 feedback을 /motor_state로 다시 ROS2에 publish 성공
+humanoid_bringup launch/yaml 기반 실행 구조 확보
+워크스페이스 권한 문제 해결 및 본 경로 빌드 성공
+

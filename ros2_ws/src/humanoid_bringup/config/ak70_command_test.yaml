@@ -1,0 +1,10 @@
+ak70_command_test_node:
+  ros__parameters:
+    mode: hold
+    publish_rate_hz: 20.0
+    hold_target_rad: 0.2
+    step_target_rad: 0.5
+    step_hold_sec: 2.0
+    sine_amplitude_rad: 0.2
+    sine_offset_rad: 0.0
+    sine_frequency_hz: 0.2

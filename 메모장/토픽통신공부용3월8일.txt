@@ -1,0 +1,69 @@
+매 터미널마다 워크스페이스를 source 해야됨
+
+cd ~/humanoid_mk1/ros2_ws
+source install/setup.bash
+
+안 하면 ros2 topic 명령이 패키지/토픽을 제대로 못 찾을 수 있음
+
+AK70 드라이버 노드 실행하기
+
+cd ~/humanoid_mk1/ros2_ws
+source install/setup.bash
+ros2 launch humanoid_bringup ak70_driver.launch.py
+
+어떤 토픽이 떠 있는지 확인
+
+ros2 topic list
+
+특정 토픽의 메시지 타입 확인(안해도됨)
+
+ros2 topic type /control_command
+ros2 topic type /motor_state
+ros2 topic type /(이름)
+
+publisher/subscriber 개수까지 포함해서 보기
+
+ros2 topic info /control_command
+ros2 topic info /motor_state
+ros2 topic info /(이름)
+
+모터 피드백을 계속 확인
+
+ros2 topic echo /motor_state
+
+그러면 현재 위치값이 계속 출력됨
+
+명령 1번만 보내기
+목표 위치를 한 번만 보내기
+
+ros2 topic pub --once /control_command std_msgs/msg/Float64 "{data: 0.2}"
+
+처음엔 작은 값부터 보내는 게 좋음(확 튀어서 모터가 다치면 안댕)
+
+명령을 계속 보내기
+목표 위치를 일정 주기로 반복 발행
+
+ros2 topic pub /control_command std_msgs/msg/Float64 "{data: 0.2}" -r 20
+
+의미
+/control_command에 0.2 rad를 초당 20번 보냄
+
+
+토픽이 몇 Hz로 오가는지 보기(주파수)
+ros2 topic hz /motor_state
+
+또는
+
+ros2 topic hz /control_command
+
+토픽 값 한 번만 보기
+계속 echo 말고 한 메시지만 확인하기
+
+ros2 topic echo /motor_state --once
+
+노드 목록 보기 (현재 실행 중인 노드 확인)
+ros2 node list
+
+특정 노드 정보 보기
+예를 들어 드라이버 노드 정보 확인
+ros2 node info /ak70_can_node 그러면 subscribe 중인 토픽 publish 중인 토픽서비스 나옴

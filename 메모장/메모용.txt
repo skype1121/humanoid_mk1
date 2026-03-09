@@ -1,0 +1,282 @@
+노드 시작 단계
+
+ros2 launch humanoid_bringup ak70_driver.launch.py
+이 launch 파일이 다음 노드를 실행한다.
+Node(
+    package='humanoid_control',
+    executable='ak70_can_node',
+)
+
+즉 실행되는 프로그램은
+ak70_can_node.py
+
+
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡROS2 노드 초기화
+main() 함수에서 ROS2 노드를 생성한다.
+
+rclpy.init()
+node = AK70CanNode()
+rclpy.spin(node)
+이 순간 ROS2 executor가 노드를 관리
+
+노드 생성자 실행 (__init__)
+노드가 생성되면 다음 작업이 순서대로 실행
+
+파라미터 선언
+declare_parameter()
+
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡ사용되는 주요 파라미터
+
+parameter
+can_interface	CAN 인터페이스
+motor_id	모터 ID
+control_period_sec	제어 루프 주기
+kp	위치 제어 gain
+kd	위치 제어 damping
+command_timeout_sec	명령 timeout
+
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡCAN 버스 연결
+self.bus = can.Bus(interface='socketcan', channel=self.interface)
+
+
+ROS2 node
+    ↓
+python-can
+    ↓
+SocketCAN
+    ↓
+PCAN USB
+    ↓
+CAN bus
+
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡROS2 토픽 생성
+Subscriber
+self.command_sub = self.create_subscription(
+    Float64,
+    '/control_command',
+    self.control_command_callback,
+    10,
+)
+
+의미
+
+/control_command
+      ↓
+callback 실행
+Publisher
+self.state_pub = self.create_publisher(Float64, '/motor_state', 10)
+
+즉
+
+driver
+   ↓
+/motor_state publish
+
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡ모터 초기화
+노드 시작 직후 실행됨
+
+모터 모드 진입
+enter_motor_mode()
+
+보내는 CAN frame
+
+FF FF FF FF FF FF FF FC
+초기 zero command
+zero_command()
+
+즉
+
+p = 0
+v = 0
+kp = 0
+kd = 0
+torque = 0
+
+를 여러 번 보내 모터를 초기화
+
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡ제어 루프 생성
+self.control_timer = self.create_timer(
+    control_period_sec,
+    self.control_timer_callback
+)
+
+현재 설정
+
+control_period_sec = 0.02
+
+= 50 Hz control loop
+
+명령 토픽 수신
+외부에서 다음 명령을 보내면
+
+ros2 topic pub /control_command std_msgs/msg/Float64 "{data: 1.0}"
+
+콜백이 실행
+
+control_command_callback()
+
+이 함수는 단순
+
+self.target_position = msg.data
+self.last_command_time = now
+
+target_position 업데이트만 수행
+
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡ제어 루프 실행 (50Hz)
+50Hz마다 실행되는 함수
+
+control_timer_callback()
+
+여기서 실제 모터 제어가 수행
+
+timeout 체크
+elapsed_sec = now - last_command_time
+
+명령이 오래 안 오면
+
+holding last target
+
+로그만 출력하고 목표값 유지한다.
+
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡ모터 명령 송신
+send_position(self.target_position)
+
+이 함수 내부:
+
+pack_mit_command()
+    ↓
+send_frame()
+
+즉
+
+target_position
+     ↓
+MIT frame 생성
+     ↓
+CAN frame 전송
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡRMIT 명령 패킹
+
+핵심 함수
+
+pack_mit_command()
+
+입력
+
+position
+velocity
+kp
+kd
+torque
+
+이를 MIT 프로토콜 형식으로 변환
+
+
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡRCAN 송신
+self.bus.send(msg)
+
+실제 흐름
+
+ROS2 node
+   ↓
+python-can
+   ↓
+SocketCAN
+   ↓
+PCAN USB
+   ↓
+AK70 motor
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡR모터 피드백 수신
+
+모터는 매 명령마다 feedback frame을 보냄
+
+읽는 코드
+
+msg = self.bus.recv()
+
+MIT 피드백 디코딩
+parse_feedback()
+
+frame 구조
+
+byte0 motor id
+byte1~2 position
+byte3~4 velocity
+byte4~5 torque
+
+이를 다시 float로 변환
+
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡROS2 상태 토픽 발행
+마지막 단계
+
+msg = Float64()
+msg.data = feedback["pos"]
+
+self.state_pub.publish(msg)
+
+즉
+
+CAN feedback
+     ↓
+position(rad)
+     ↓
+/motor_state publish
+
+
+전체 흐름
+ROS2 topic
+/control_command
+        ↓
+control_command_callback
+        ↓
+target_position 저장
+        ↓
+50Hz control loop
+        ↓
+MIT frame 생성
+        ↓
+CAN 송신
+        ↓
+AK70 모터
+        ↓
+feedback frame
+        ↓
+MIT decode
+        ↓
+/motor_state publish
+
+
+
+ROS2 node
+(control)
+
+   │
+   │ publish
+   ▼
+
+/control_command
+   │
+   ▼
+
+AK70 CAN driver
+   │
+   │ MIT frame
+   ▼
+
+CAN bus
+   │
+   ▼
+
+AK70 motor
+   │
+   │ feedback frame
+   ▼
+
+AK70 CAN driver
+   │
+   ▼
+
+/motor_state
+
+
+ROS2 토픽 명령을 MIT CAN 프레임으로 변환해 모터를 제어하고
+모터 상태를 다시 ROS2 토픽으로 변환하는 드라이버 노드

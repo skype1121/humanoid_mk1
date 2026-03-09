@@ -1,0 +1,11 @@
+ak70_can_node:
+  ros__parameters:
+    can_interface: can0
+    motor_id: 5
+    control_period_sec: 0.02
+    kp: 12.0
+    kd: 1.0
+    command_timeout_sec: 0.5
+    startup_zero_command_repeat: 50
+    startup_zero_command_dt: 0.01
+    feedback_timeout_sec: 0.002

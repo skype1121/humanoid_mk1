@@ -1,0 +1,18 @@
+# ROS2
+ros2_ws/build/
+ros2_ws/install/
+ros2_ws/log/
+
+# Python
+__pycache__/
+*.pyc
+
+# Editor
+.vscode/
+
+# Large folders
+simulation/
+
+# Optional notes/output
+*.bag
+*.db3

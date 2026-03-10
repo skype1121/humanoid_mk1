@@ -17,4 +17,3 @@ simulation/isaac-sim-5.1.0/
 # Optional notes/output
 *.bag
 *.db3
-**pycache**/

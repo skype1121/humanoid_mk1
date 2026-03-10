@@ -17,6 +17,8 @@ def generate_launch_description():
                 {'kp': 12.0},
                 {'kd': 1.0},
                 {'command_timeout_sec': 0.5},
+                {'enable_motor_on_startup': True},
+                {'send_zero_on_startup': True},
                 {'startup_zero_command_repeat': 50},
                 {'startup_zero_command_dt': 0.01},
             ],

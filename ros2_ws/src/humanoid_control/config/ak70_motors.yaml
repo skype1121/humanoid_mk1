@@ -1,0 +1,38 @@
+ak70_driver_node:
+  ros__parameters:
+    # 1모터 검증용 기본 예시:
+    # 먼저 1개 모터만 연결해서 command/state 토픽 흐름을 확인한 뒤 2개, 8개로 늘린다.
+    control_period_sec: 0.02
+    command_timeout_sec: 0.5
+    feedback_timeout_sec: 0.002
+    enable_motors_on_startup: false
+    send_zero_on_startup: false
+    startup_zero_command_repeat: 50
+    startup_zero_command_dt: 0.01
+    command_topic: /ak70/command
+    state_topic: /ak70/motor_states
+
+    # 토픽:
+    # command_topic: sensor_msgs/JointState
+    # state_topic: sensor_msgs/JointState
+    #
+    # startup 권장 순서:
+    # 1) 처음에는 enable_motors_on_startup=false, send_zero_on_startup=false 로 실행
+    # 2) CAN 수신과 상태 토픽만 확인
+    # 3) 방향/오프셋이 맞는지 확인 후 enable_motors_on_startup=true 로 시험
+    # 4) 필요할 때만 send_zero_on_startup=true 를 잠깐 사용
+    #
+    # 가정 기반 설정:
+    # zero_offset은 조인트 0rad에서의 모터 위치(rad)로 사용한다.
+    # direction은 조인트 좌표계와 모터 좌표계의 부호 보정값으로 사용한다.
+    # 현재 구현은 ROS2 파라미터 제약 때문에 병렬 배열을 사용한다.
+    # motors 리스트 기반 구조는 추후 TODO로 남긴다.
+    joint_names:
+      - left_hip_roll
+    motor_ids: [5]
+    can_interfaces:
+      - can0
+    directions: [1.0]
+    zero_offsets: [0.0]
+    kps: [12.0]
+    kds: [1.0]

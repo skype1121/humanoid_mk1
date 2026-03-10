@@ -7,6 +7,7 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 
 add_executable(control_loop_node src/control_loop_node.cpp)
@@ -24,13 +25,25 @@ install(PROGRAMS
 )
 
 install(PROGRAMS
+  scripts/ak70_driver_node.py
+  DESTINATION lib/${PROJECT_NAME}
+  RENAME ak70_driver_node
+)
+
+install(PROGRAMS
   scripts/ak70_command_test_node.py
   DESTINATION lib/${PROJECT_NAME}
   RENAME ak70_command_test_node
 )
 
 install(DIRECTORY
+  scripts/humanoid_control_py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(DIRECTORY
   launch
+  config
   DESTINATION share/${PROJECT_NAME}
 )
 

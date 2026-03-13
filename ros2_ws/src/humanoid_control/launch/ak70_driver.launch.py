@@ -3,8 +3,37 @@ import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
+from launch.actions import OpaqueFunction
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
+
+
+def launch_setup(context, *args, **kwargs):
+    config_file = LaunchConfiguration('config_file').perform(context)
+    launch_ui = LaunchConfiguration('launch_ui').perform(context).strip().lower()
+
+    nodes = [
+        Node(
+            package='humanoid_control',
+            executable='ak70_driver_node',
+            name='ak70_driver_node',
+            output='screen',
+            parameters=[config_file],
+        )
+    ]
+
+    if launch_ui in ('true', '1', 'yes', 'on'):
+        nodes.append(
+            Node(
+                package='humanoid_control',
+                executable='ak70_control_panel',
+                name='ak70_control_panel',
+                output='screen',
+                parameters=[config_file],
+            )
+        )
+
+    return nodes
 
 
 def generate_launch_description():
@@ -20,11 +49,10 @@ def generate_launch_description():
             default_value=default_config_path,
             description='AK70 driver YAML config file',
         ),
-        Node(
-            package='humanoid_control',
-            executable='ak70_driver_node',
-            name='ak70_driver_node',
-            output='screen',
-            parameters=[LaunchConfiguration('config_file')],
-        )
+        DeclareLaunchArgument(
+            'launch_ui',
+            default_value='false',
+            description='Launch AK70 Tk control panel',
+        ),
+        OpaqueFunction(function=launch_setup),
     ])

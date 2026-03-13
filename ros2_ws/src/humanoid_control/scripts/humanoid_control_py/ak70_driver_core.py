@@ -83,6 +83,9 @@ class AK70MotorConfig:
     zero_offset: float = 0.0
     kp: float = 12.0
     kd: float = 1.0
+    min_position: float = P_MIN
+    max_position: float = P_MAX
+    max_step_per_cycle: float = 0.05
 
 
 @dataclass
@@ -98,10 +101,25 @@ class AK70MotorState:
 class AK70Motor:
     config: AK70MotorConfig
     target_position: float = 0.0
+    last_sent_target_position: float = 0.0
     last_command_monotonic: Optional[float] = None
     last_feedback_warn_monotonic: float = 0.0
     last_timeout_warn_monotonic: float = 0.0
+    enabled: bool = False
     state: AK70MotorState = field(default_factory=AK70MotorState)
+
+    def clamp_joint_position(self, joint_position: float) -> float:
+        return max(self.config.min_position, min(self.config.max_position, joint_position))
+
+    def limit_target_step(self, desired_position: float) -> float:
+        clamped_position = self.clamp_joint_position(desired_position)
+        step_limit = max(self.config.max_step_per_cycle, 0.0)
+        if step_limit <= 0.0:
+            return clamped_position
+
+        lower_bound = self.last_sent_target_position - step_limit
+        upper_bound = self.last_sent_target_position + step_limit
+        return max(lower_bound, min(upper_bound, clamped_position))
 
     def command_to_motor_position(self, joint_position: float) -> float:
         # 가정 기반 구현:

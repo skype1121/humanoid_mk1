@@ -8,6 +8,10 @@ RUN apt-get update && apt-get install -y \
     python3-rosdep \
     python3-vcstool \
     python3-tk \
+    ros-humble-rqt \
+    ros-humble-rqt-graph \
+    dbus-x11 \
+    x11-apps \
     git \
     can-utils \
     iputils-ping \

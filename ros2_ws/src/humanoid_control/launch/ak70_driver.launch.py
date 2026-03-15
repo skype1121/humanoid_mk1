@@ -12,16 +12,7 @@ def launch_setup(context, *args, **kwargs):
     config_file = LaunchConfiguration('config_file').perform(context)
     launch_ui = LaunchConfiguration('launch_ui').perform(context).strip().lower()
 
-    nodes = [
-        Node(
-            package='humanoid_control',
-            executable='ak70_driver_node',
-            name='ak70_driver_node',
-            output='screen',
-            parameters=[config_file],
-        )
-    ]
-
+    nodes = []
     if launch_ui in ('true', '1', 'yes', 'on'):
         nodes.append(
             Node(
@@ -32,6 +23,18 @@ def launch_setup(context, *args, **kwargs):
                 parameters=[config_file],
             )
         )
+
+    # 드라이버와 UI가 같은 YAML을 읽도록 유지해서 모터 개수 불일치를 막는다.
+    # UI를 먼저 기동해서 CAN/드라이버 문제와 무관하게 패널이 먼저 뜨도록 둔다.
+    nodes.append(
+        Node(
+            package='humanoid_control',
+            executable='ak70_driver_node',
+            name='ak70_driver_node',
+            output='screen',
+            parameters=[config_file],
+        )
+    )
 
     return nodes
 

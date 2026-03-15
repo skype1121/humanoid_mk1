@@ -2,6 +2,25 @@
 ros2_ws/build/
 ros2_ws/install/
 ros2_ws/log/
+ros2_ws_backups_*/
+*_backups_*/
+build_ryu/
+install_ryu/
+log_ryu/
+
+# Docker artifacts
+docker/build/
+docker/install/
+docker/log/
+
+# Colcon/CMake artifacts
+*.env
+events.log
+stdout.log
+stderr.log
+stdout_stderr.log
+streams.log
+logger_all.log
 
 # Python
 __pycache__/

@@ -1,17 +1,21 @@
 #!/bin/bash
 
+set -e
+
 source /opt/ros/humble/setup.bash
-cd /root/ros2_ws || exit 1
 
-echo "=== Building ROS workspace ==="
-colcon build --symlink-install
-BUILD_EXIT=$?
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WORKSPACE_DIR="/root/ros2_ws"
 
-if [ $BUILD_EXIT -ne 0 ]; then
-  echo "=== Build failed ==="
-  return $BUILD_EXIT 2>/dev/null || exit $BUILD_EXIT
+if [ ! -d "$WORKSPACE_DIR/src" ]; then
+  WORKSPACE_DIR="$SCRIPT_DIR"
 fi
+
+cd "$WORKSPACE_DIR" || exit 1
+
+echo "=== Building ROS workspace: $WORKSPACE_DIR ==="
+colcon build --symlink-install
 
 echo "=== Build finished ==="
 echo "=== Run this next in the current shell ==="
-echo "source /root/ros2_ws/install/setup.bash"
+echo "source $WORKSPACE_DIR/install/setup.bash"

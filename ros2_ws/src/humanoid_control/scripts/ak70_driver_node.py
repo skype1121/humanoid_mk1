@@ -145,6 +145,27 @@ class AK70DriverNode(Node):
             f'enable_on_startup={self.enable_motors_on_startup}, zero_on_startup={self.send_zero_on_startup}, '
             f'legacy_topics={self.enable_legacy_topics}'
         )
+        self.get_logger().info(
+            'Configured motors: '
+            + ', '.join(
+                f'{motor.config.joint_name}(id={motor.config.motor_id}, can={motor.config.can_interface})'
+                for motor in self.motors
+            )
+        )
+
+    def validate_required_length(
+        self,
+        name: str,
+        values: List[float],
+        required_length: int,
+        allow_empty: bool = False,
+    ) -> List[float]:
+        # 빈 배열 허용 항목은 기본값 확장을 위해 그대로 반환한다.
+        if allow_empty and not values:
+            return values
+        if len(values) != required_length:
+            raise ValueError(f'{name} length mismatch: {len(values)} != {required_length}')
+        return values
 
     def load_motor_configs(self) -> List[AK70Motor]:
         joint_names = [str(value) for value in self.get_parameter('joint_names').value]
@@ -173,22 +194,22 @@ class AK70DriverNode(Node):
             if value != required_length:
                 raise ValueError(f'Parameter length mismatch: {key}={value}, expected={required_length}')
 
+        self.validate_required_length('kps', kps, required_length, allow_empty=True)
+        self.validate_required_length('kds', kds, required_length, allow_empty=True)
+        self.validate_required_length('min_positions', min_positions, required_length, allow_empty=True)
+        self.validate_required_length('max_positions', max_positions, required_length, allow_empty=True)
+        self.validate_required_length('max_position_steps', max_position_steps, required_length, allow_empty=True)
+
         if not kps:
             kps = [12.0] * required_length
         if not kds:
             kds = [1.0] * required_length
-        if len(kps) != required_length or len(kds) != required_length:
-            raise ValueError('kps and kds must be empty or match joint_names length')
         if not min_positions:
             min_positions = [P_MIN] * required_length
         if not max_positions:
             max_positions = [P_MAX] * required_length
         if not max_position_steps:
             max_position_steps = [0.05] * required_length
-        if len(min_positions) != required_length or len(max_positions) != required_length:
-            raise ValueError('min_positions and max_positions must be empty or match joint_names length')
-        if len(max_position_steps) != required_length:
-            raise ValueError('max_position_steps must be empty or match joint_names length')
 
         motors: List[AK70Motor] = []
         seen_joint_names = set()

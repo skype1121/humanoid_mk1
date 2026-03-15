@@ -35,3 +35,16 @@ simulation/isaac-sim-5.1.0/
 # Optional notes/output
 *.bag
 *.db3
+
+# ROS2 / colcon extra
+**/CMakeFiles/
+**/CMakeCache.txt
+**/cmake_install.cmake
+**/compile_commands.json
+**/.colcon_install_layout
+**/COLCON_IGNORE
+
+# Temp/editor
+*.swp
+*.swo
+*~
